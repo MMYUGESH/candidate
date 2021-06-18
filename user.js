@@ -35,16 +35,21 @@ app.post('/signup', async (req, res) => {
     try {
         let clientInfo = await mongoClient.connect(dbUrl);
         let db = clientInfo.db("candidate");
-        let found = await db.collection("users").findOne({ email: req.body.email });
-        if (found) {
-            res.status(400).json({ message: "user already exists" })
-        } else {
-            let salt = await bcrypt.genSalt(10);
-            let hash = await bcrypt.hash(req.body.password, salt);
-            req.body.password = hash;
-            await db.collection('users').insertOne(req.body);
-            res.status(200).json({ message: "user registered" });
+        if (req.body.position === "candidate") {
+            let found = await db.collection("users").findOne({ email: req.body.email });
 
+            if (found) {
+                res.status(400).json({ message: "user already exists" })
+            } else {
+                let salt = await bcrypt.genSalt(10);
+                let hash = await bcrypt.hash(req.body.password, salt);
+                req.body.password = hash;
+                await db.collection('users').insertOne(req.body);
+                res.status(200).json({ message: "user registered" });
+
+            }
+        } else {
+            res.status(400).json({ message: "signup is only for candidates" })
         }
         clientInfo.close();
     }
@@ -58,8 +63,12 @@ app.post('/login', async (req, res) => {
         let clientInfo = await mongoClient.connect(dbUrl);
         let db = clientInfo.db("candidate");
         let found = await db.collection("users").findOne({ email: req.body.email });
+        console.log(found);
+
         if (found) {
+
             let isValid = await bcrypt.compare(req.body.password, found.password)
+
             if (isValid) {
                 //OK
                 res.status(200).json({ message: "login successful" })
@@ -67,10 +76,12 @@ app.post('/login', async (req, res) => {
                 //401 Unauthorized
                 res.status(401).json({ message: "login Unsuccessful" })
             }
-        } else {
+        }
+        else {
 
             res.status(404).json({ message: "user not registered" })
         }
+
         clientInfo.close();
     }
     catch (error) {
