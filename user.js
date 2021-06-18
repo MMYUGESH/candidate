@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const mongodb = require('mongodb');
 require('dotenv').config();
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 var cors = require("cors");
 
 
